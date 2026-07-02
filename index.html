@@ -1574,6 +1574,14 @@
                                 <label>No. Meja (opsional)</label>
                                 <input type="text" id="noMeja" placeholder="Masukkan nomor meja">
                             </div>
+
+                            <!-- ========== FITUR BARU: JAM PENGAMBILAN ========== -->
+                            <div class="form-group">
+                                <label>⏰ Jam Pengambilan <span class="required">*</span></label>
+                                <input type="time" id="jamPengambilan" required>
+                                <div class="input-hint">Pilih perkiraan waktu Anda akan mengambil pesanan.</div>
+                            </div>
+
                             <div class="form-group">
                                 <label>Catatan (opsional)</label>
                                 <textarea id="catatanPesan" placeholder="Tambahkan catatan untuk pesanan..." rows="2"></textarea>
@@ -2256,6 +2264,16 @@
                 btn.disabled = (cart.length === 0 || this.value.trim() === '');
             });
 
+            // Set default jam pengambilan = sekarang + 15 menit
+            const jamInput = document.getElementById('jamPengambilan');
+            if (jamInput) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() + 15);
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                jamInput.value = hours + ':' + minutes;
+            }
+
             renderCart();
         }
 
@@ -2267,6 +2285,12 @@
             const nama = document.getElementById('namaPemesan').value.trim();
             if (!nama) {
                 showToast('Masukkan nama pemesan!', 'error');
+                return;
+            }
+
+            const jamPengambilan = document.getElementById('jamPengambilan').value;
+            if (!jamPengambilan) {
+                showToast('Pilih jam pengambilan!', 'error');
                 return;
             }
 
@@ -2282,6 +2306,7 @@
                 id: generateId(),
                 nama_pemesan: nama,
                 no_meja: noMeja || '-',
+                jam_pengambilan: jamPengambilan, // <-- tambahan
                 items: cart.map(c => {
                     const item = getMenuById(c.id);
                     return {
@@ -2315,6 +2340,7 @@
             renderCart();
             document.getElementById('catatanPesan').value = '';
             document.getElementById('noMeja').value = '';
+            document.getElementById('jamPengambilan').value = '';
 
             showToast(`✅ Pesanan berhasil! ID: ${newPesanan.id}`);
             showPaymentPage(newPesanan.id);
@@ -2341,6 +2367,7 @@
                             <p><strong>ID Pesanan:</strong> ${p.id}</p>
                             <p><strong>Pemesan:</strong> ${p.nama_pemesan}</p>
                             <p><strong>No. Meja:</strong> ${p.no_meja || '-'}</p>
+                            <p><strong>Jam Pengambilan:</strong> ${p.jam_pengambilan || '-'}</p>
                             <p><strong>Tanggal:</strong> ${p.tanggal_pesan}</p>
                             ${p.catatan ? `<p><strong>Catatan:</strong> ${p.catatan}</p>` : ''}
                         </div>
@@ -2471,6 +2498,7 @@
                             <p><strong>ID Pesanan:</strong> ${p.id}</p>
                             <p><strong>Pemesan:</strong> ${p.nama_pemesan}</p>
                             <p><strong>No. Meja:</strong> ${p.no_meja || '-'}</p>
+                            <p><strong>Jam Pengambilan:</strong> ${p.jam_pengambilan || '-'}</p>
                             <p><strong>Tanggal:</strong> ${p.tanggal_pesan}</p>
                             <p><strong>Status:</strong> <span class="status-badge ${getStatusBadge(p.status)}">${p.status}</span></p>
                             <p><strong>Status Bayar:</strong> <span class="status-badge ${getStatusBadge(p.status_pembayaran)}">${p.status_pembayaran}</span></p>
@@ -2563,6 +2591,7 @@
                                 <th>ID</th>
                                 <th>Pemesan</th>
                                 <th>Meja</th>
+                                <th>Jam Ambil</th>
                                 <th>Item</th>
                                 <th>Total</th>
                                 <th>Status</th>
@@ -2577,6 +2606,7 @@
                                     <td><strong>#${p.id}</strong></td>
                                     <td>${p.nama_pemesan}</td>
                                     <td>${p.no_meja || '-'}</td>
+                                    <td><strong>${p.jam_pengambilan || '-'}</strong></td>
                                     <td>
                                         ${p.items.slice(0, 2).map(i => i.nama).join(', ')}
                                         ${p.items.length > 2 ? '...' : ''}
@@ -2663,6 +2693,7 @@
                                         <div class="queue-name">👤 ${p.nama_pemesan}</div>
                                         <div class="queue-detail">
                                             Meja: ${p.no_meja || '-'} | 
+                                            Jam: <strong>${p.jam_pengambilan || '-'}</strong> |
                                             ${p.items.map(i => `${i.nama} (${i.jumlah})`).join(', ')}
                                         </div>
                                         ${p.catatan ? `<div class="queue-detail" style="color:var(--warning);">📝 Catatan: ${p.catatan}</div>` : ''}
